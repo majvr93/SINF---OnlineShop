@@ -38,5 +38,23 @@ namespace FirstREST.Controllers
             }
         }
 
+
+        // PUT api/encomendas
+        public HttpResponseMessage Put(Lib_Primavera.Model.Encomenda encomenda)
+        {
+            Lib_Primavera.Model.RespostaErro resposta = new Lib_Primavera.Model.RespostaErro();
+
+            resposta = Lib_Primavera.PriIntegration.InsereEncomenda(encomenda);
+
+            if (resposta.Erro == 0)
+            {
+                return Request.CreateResponse(HttpStatusCode.Created);
+            }
+            else
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
+            }
+        }
+
     }
 }

@@ -8,8 +8,6 @@ using Interop.StdBE800;
 using Interop.GcpBE800;
 using ADODB;
 using Interop.IGcpBS800;
-//using Interop.StdBESql800;
-//using Interop.StdBSSql800;
 
 namespace FirstREST.Lib_Primavera
 {
@@ -29,8 +27,6 @@ namespace FirstREST.Lib_Primavera
 
             if (PriEngine.InitializeCompany(companyName, FirstREST.Properties.Settings.Default.User.Trim(), FirstREST.Properties.Settings.Default.Password.Trim()) == true)
             {
-
-                //objList = PriEngine.Engine.Comercial.Clientes.LstClientes();
 
                 objList = PriEngine.Engine.Consulta("SELECT Cliente, Nome, Moeda, NumContrib as NumContribuinte, Fac_Mor AS campo_exemplo, Fac_Local as Cidade, Fac_Cp as CodigoPostal, Pais, Fac_Tel as NumeroTelefone, EnderecoWeb as Email FROM  CLIENTES");
 
@@ -244,115 +240,9 @@ namespace FirstREST.Lib_Primavera
 
         }
 
-///
 
-////////////////////////////////////////////////// ENCOMENDAS ///////////////////////////////////////////////////
+   
 
-        public static List<Model.Encomenda> GetEncomendasCliente(string CodigoCliente)
-        {
-            ErpBS objMotor = new ErpBS();
-
-            StdBELista objListCab;
-            StdBELista objListLin;
-            Model.Encomenda dv = new Model.Encomenda();
-            List<Model.Encomenda> listdv = new List<Model.Encomenda>();
-            Model.LinhaEncomenda lindv = new Model.LinhaEncomenda();
-            List<Model.LinhaEncomenda> listlindv = new List<Model.LinhaEncomenda>();
-
-            if (PriEngine.InitializeCompany(companyName, FirstREST.Properties.Settings.Default.User.Trim(), FirstREST.Properties.Settings.Default.Password.Trim()) == true)
-            {
-                objListCab = PriEngine.Engine.Consulta("SELECT id, Entidade, Data, NumDoc, Estado From CabecDoc INNER JOIN CabecDocStatus ON CabecDoc.Id=CabecDocStatus.IdCabecDoc where TipoDoc='ECL' and Entidade='" + CodigoCliente + "'");
-                while (!objListCab.NoFim())
-                {
-                    dv = new Model.Encomenda();
-
-                    dv.Entidade = objListCab.Valor("Entidade");
-                    dv.Data = objListCab.Valor("Data");
-                    dv.NumDoc = objListCab.Valor("NumDoc");
-                    string estado = objListCab.Valor("Estado");
-                    if (estado == "P")
-                        dv.Estado = "Em processamento";
-                    else if (estado == "T")
-                        dv.Estado = "Entregue";
-
-                    objListLin = PriEngine.Engine.Consulta("SELECT idCabecDoc, Artigo, Descricao, Quantidade, PrecUnit, Desconto1, TotalILiquido, PrecoLiquido from LinhasDoc where IdCabecDoc='" + objListCab.Valor("id") + "' order By NumLinha");
-                    listlindv = new List<Model.LinhaEncomenda>();
-
-                    while (!objListLin.NoFim())
-                    {
-                        lindv = new Model.LinhaEncomenda();
-                        lindv.CodigoArtigo = objListLin.Valor("Artigo");
-                        lindv.Quantidade = objListLin.Valor("Quantidade");
-                        lindv.DescricaoArtigo = objListLin.Valor("Descricao");
-                        lindv.Desconto = objListLin.Valor("Desconto1");
-                        lindv.PrecoUnitario = objListLin.Valor("PrecUnit");
-                        lindv.TotalILiquido = objListLin.Valor("TotalILiquido");
-                        lindv.TotalLiquido = objListLin.Valor("PrecoLiquido");
-
-                        listlindv.Add(lindv);
-                        objListLin.Seguinte();
-                    }
-
-                    dv.LinhasEncomenda = listlindv;
-                    listdv.Add(dv);
-                    objListCab.Seguinte();
-                }
-            }
-            return listdv;
-        }
-
-
-        public static Model.Encomenda GetEncomenda(string numdoc)
-        {
-            ErpBS objMotor = new ErpBS();
-
-            StdBELista objListCab;
-            StdBELista objListLin;
-            Model.Encomenda dv = new Model.Encomenda();
-            Model.LinhaEncomenda lindv = new Model.LinhaEncomenda();
-            List<Model.LinhaEncomenda> listlindv = new List<Model.LinhaEncomenda>();
-
-            if (PriEngine.InitializeCompany(companyName, FirstREST.Properties.Settings.Default.User.Trim(), FirstREST.Properties.Settings.Default.Password.Trim()) == true)
-            {
-
-                string st = "SELECT id, Entidade, Data, NumDoc, Estado From CabecDoc INNER JOIN CabecDocStatus ON CabecDoc.Id=CabecDocStatus.IdCabecDoc where TipoDoc='ECL' and NumDoc='" + numdoc + "'";
-                objListCab = PriEngine.Engine.Consulta(st);
-                dv = new Model.Encomenda();
-                dv.Entidade = objListCab.Valor("Entidade");
-                dv.NumDoc = objListCab.Valor("NumDoc");
-                dv.Data = objListCab.Valor("Data");
-                string estado = objListCab.Valor("Estado");
-                if (estado == "P")
-                    dv.Estado = "Em processamento";
-                else if (estado == "T")
-                    dv.Estado = "Entregue";
-
-                objListLin = PriEngine.Engine.Consulta("SELECT idCabecDoc, Artigo, Descricao, Quantidade, Unidade, PrecUnit, Desconto1, TotalILiquido, PrecoLiquido from LinhasDoc where IdCabecDoc='" + objListCab.Valor("id") + "' order By NumLinha");
-                listlindv = new List<Model.LinhaEncomenda>();
-
-                while (!objListLin.NoFim())
-                {
-                    lindv = new Model.LinhaEncomenda();
-                    lindv.CodigoArtigo = objListLin.Valor("Artigo");
-                    lindv.Quantidade = objListLin.Valor("Quantidade");
-                    lindv.Desconto = objListLin.Valor("Desconto1");
-                    lindv.DescricaoArtigo = objListLin.Valor("Descricao");
-                    lindv.PrecoUnitario = objListLin.Valor("PrecUnit");
-                    lindv.TotalILiquido = objListLin.Valor("TotalILiquido");
-                    lindv.TotalLiquido = objListLin.Valor("PrecoLiquido");
-                    listlindv.Add(lindv);
-                    objListLin.Seguinte();
-                }
-
-                dv.LinhasEncomenda = listlindv;
-                return dv;
-            }
-            return null;
-        }
-
-        /////////////////////////////////////////////////////////////////// encomendas end ////////////////////////////////////////////////////
-       
-///
         #endregion Cliente;   // -----------------------------  END   CLIENTE    -----------------------
 
 
@@ -363,10 +253,6 @@ namespace FirstREST.Lib_Primavera
             
             GcpBEArtigo objArtigo = new GcpBEArtigo();
             Model.Artigo myArt = new Model.Artigo();
-
-            //IGcpBSArtigos camposUser;
-           // GcpBEArtigoMoeda preco = new GcpBEArtigoMoeda();
-          
 
             if (PriEngine.InitializeCompany(companyName, FirstREST.Properties.Settings.Default.User.Trim(), FirstREST.Properties.Settings.Default.Password.Trim()) == true)
             {
@@ -725,6 +611,167 @@ namespace FirstREST.Lib_Primavera
 
         #endregion DocsVenda
 
-      
+        # region Encomenda
+
+        public static List<Model.Encomenda> GetEncomendasCliente(string CodigoCliente)
+        {
+            ErpBS objMotor = new ErpBS();
+
+            StdBELista objListCab;
+            StdBELista objListLin;
+            Model.Encomenda dv = new Model.Encomenda();
+            List<Model.Encomenda> listdv = new List<Model.Encomenda>();
+            Model.LinhaEncomenda lindv = new Model.LinhaEncomenda();
+            List<Model.LinhaEncomenda> listlindv = new List<Model.LinhaEncomenda>();
+
+            if (PriEngine.InitializeCompany(companyName, FirstREST.Properties.Settings.Default.User.Trim(), FirstREST.Properties.Settings.Default.Password.Trim()) == true)
+            {
+                objListCab = PriEngine.Engine.Consulta("SELECT id, Entidade, Data, NumDoc, Estado From CabecDoc INNER JOIN CabecDocStatus ON CabecDoc.Id=CabecDocStatus.IdCabecDoc where TipoDoc='ECL' and Entidade='" + CodigoCliente + "'");
+                while (!objListCab.NoFim())
+                {
+                    dv = new Model.Encomenda();
+
+                    dv.Entidade = objListCab.Valor("Entidade");
+                    dv.Data = objListCab.Valor("Data");
+                    dv.NumDoc = objListCab.Valor("NumDoc");
+                    string estado = objListCab.Valor("Estado");
+                    if (estado == "P")
+                        dv.Estado = "Em processamento";
+                    else if (estado == "T")
+                        dv.Estado = "Entregue";
+
+                    objListLin = PriEngine.Engine.Consulta("SELECT idCabecDoc, Artigo, Descricao, Quantidade, PrecUnit, Desconto1, TotalILiquido, PrecoLiquido from LinhasDoc where IdCabecDoc='" + objListCab.Valor("id") + "' order By NumLinha");
+                    listlindv = new List<Model.LinhaEncomenda>();
+
+                    while (!objListLin.NoFim())
+                    {
+                        lindv = new Model.LinhaEncomenda();
+                        lindv.CodigoArtigo = objListLin.Valor("Artigo");
+                        lindv.Quantidade = objListLin.Valor("Quantidade");
+                        lindv.DescricaoArtigo = objListLin.Valor("Descricao");
+                        lindv.Desconto = objListLin.Valor("Desconto1");
+                        lindv.PrecoUnitario = objListLin.Valor("PrecUnit");
+                        lindv.TotalILiquido = objListLin.Valor("TotalILiquido");
+                        lindv.TotalLiquido = objListLin.Valor("PrecoLiquido");
+
+                        listlindv.Add(lindv);
+                        objListLin.Seguinte();
+                    }
+
+                    dv.LinhasEncomenda = listlindv;
+                    listdv.Add(dv);
+                    objListCab.Seguinte();
+                }
+            }
+            return listdv;
+        }
+
+
+        public static Model.Encomenda GetEncomenda(string numdoc)
+        {
+            ErpBS objMotor = new ErpBS();
+
+            StdBELista objListCab;
+            StdBELista objListLin;
+            Model.Encomenda dv = new Model.Encomenda();
+            Model.LinhaEncomenda lindv = new Model.LinhaEncomenda();
+            List<Model.LinhaEncomenda> listlindv = new List<Model.LinhaEncomenda>();
+
+            if (PriEngine.InitializeCompany(companyName, FirstREST.Properties.Settings.Default.User.Trim(), FirstREST.Properties.Settings.Default.Password.Trim()) == true)
+            {
+
+                string st = "SELECT id, Entidade, Data, NumDoc, Estado From CabecDoc INNER JOIN CabecDocStatus ON CabecDoc.Id=CabecDocStatus.IdCabecDoc where TipoDoc='ECL' and NumDoc='" + numdoc + "'";
+                objListCab = PriEngine.Engine.Consulta(st);
+                dv = new Model.Encomenda();
+                dv.Entidade = objListCab.Valor("Entidade");
+                dv.NumDoc = objListCab.Valor("NumDoc");
+                dv.Data = objListCab.Valor("Data");
+                string estado = objListCab.Valor("Estado");
+                if (estado == "P")
+                    dv.Estado = "Em processamento";
+                else if (estado == "T")
+                    dv.Estado = "Entregue";
+
+                objListLin = PriEngine.Engine.Consulta("SELECT idCabecDoc, Artigo, Descricao, Quantidade, Unidade, PrecUnit, Desconto1, TotalILiquido, PrecoLiquido from LinhasDoc where IdCabecDoc='" + objListCab.Valor("id") + "' order By NumLinha");
+                listlindv = new List<Model.LinhaEncomenda>();
+
+                while (!objListLin.NoFim())
+                {
+                    lindv = new Model.LinhaEncomenda();
+                    lindv.CodigoArtigo = objListLin.Valor("Artigo");
+                    lindv.Quantidade = objListLin.Valor("Quantidade");
+                    lindv.Desconto = objListLin.Valor("Desconto1");
+                    lindv.DescricaoArtigo = objListLin.Valor("Descricao");
+                    lindv.PrecoUnitario = objListLin.Valor("PrecUnit");
+                    lindv.TotalILiquido = objListLin.Valor("TotalILiquido");
+                    lindv.TotalLiquido = objListLin.Valor("PrecoLiquido");
+                    listlindv.Add(lindv);
+                    objListLin.Seguinte();
+                }
+
+                dv.LinhasEncomenda = listlindv;
+                return dv;
+            }
+            return null;
+        }
+
+
+        public static Model.RespostaErro InsereEncomenda(Model.Encomenda dv)
+        {
+            Lib_Primavera.Model.RespostaErro resposta = new Model.RespostaErro();
+            GcpBEDocumentoVenda myEnc = new GcpBEDocumentoVenda();
+
+            PreencheRelacaoVendas rl = new PreencheRelacaoVendas();
+            List<Model.LinhaEncomenda> lstlindv = new List<Model.LinhaEncomenda>();
+
+            try
+            {
+                if (PriEngine.InitializeCompany(companyName, FirstREST.Properties.Settings.Default.User.Trim(), FirstREST.Properties.Settings.Default.Password.Trim()) == true)
+                {
+                    // Cabeçalho do documento
+                    myEnc.set_DataDoc(DateTime.Now);
+                    myEnc.set_Entidade(dv.Entidade);
+                    myEnc.set_Moeda("EUR");
+                    myEnc.set_Serie("A");
+                    myEnc.set_Tipodoc("ECL");
+                    myEnc.set_TipoEntidade("C");
+                    myEnc.set_CondPag("1");
+
+                    // Linha de encomendas ---> Lista de linhas de encomenda
+                    lstlindv = dv.LinhasEncomenda;
+                    PriEngine.Engine.Comercial.Vendas.PreencheDadosRelacionados(myEnc, rl);
+
+                    foreach (Model.LinhaEncomenda lin in lstlindv)
+                    {
+                        PriEngine.Engine.Comercial.Vendas.AdicionaLinha(myEnc, lin.CodigoArtigo, lin.Quantidade, "");
+                        
+                    }
+
+                    PriEngine.Engine.IniciaTransaccao();
+                    PriEngine.Engine.Comercial.Vendas.Actualiza(myEnc);
+                    PriEngine.Engine.TerminaTransaccao();
+                    resposta.Erro = 0;
+                    resposta.Descricao = "Sucesso";
+                    return resposta;
+                }
+                else
+                {
+                    resposta.Erro = 1;
+                    resposta.Descricao = "Erro ao abrir empresa " + companyName;
+                    return resposta;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                PriEngine.Engine.DesfazTransaccao();
+                resposta.Erro = 1;
+                resposta.Descricao = ex.Message;
+                return resposta;
+            }
+        }
+
+        #endregion Encomenda;
+
     }
 }
